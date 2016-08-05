@@ -1,0 +1,201 @@
+<script type="text/javascript" src="js/lib/jquery-1.11.3.min.js"></script>
+<script type="text/javascript" src="js/lib/jweixin-1.1.0.js"></script>
+<script type="text/javascript">
+	(function ($) {
+		$(function () {
+			$.fn._oldShow = $.fn.show;
+			var _oldShow = $.fn.show;
+
+			$.fn.show = function() {
+				var args = arguments;
+				return $(this).each(function() {
+					// you can trigger a before show if you want
+					$(this).trigger('beforeShow');
+
+					// now use the old function to show the element passing the new callback
+					_oldShow.apply($(this), args);
+					$(this).trigger('afterShow');
+				});
+			};
+
+			<?php
+			$jsConfig = \modules\sns\wechat\helper\Wechat::getJsApiSignature();
+			?>
+
+			wx.config({
+				debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+				appId: '<?=\modules\sns\wechat\helper\Wechat::getAppID()?>', // 必填，公众号的唯一标识
+				timestamp: <?=$jsConfig['timestamp']?>, // 必填，生成签名的时间戳
+				nonceStr: '<?=$jsConfig['noncestr']?>', // 必填，生成签名的随机串
+				signature: '<?=$jsConfig['signature']?>',// 必填，签名，见附录1
+				jsApiList: [ // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+					'onMenuShareTimeline', 'onMenuShareAppMessage', 'closeWindow', 'addCard', 'chooseCard', 'openCard', 'hideOptionMenu'
+				]
+			});
+
+			wx.ready(function () {
+				window.close = wx.closeWindow;
+
+				var evnt = new Event('wechat_js_ready');
+				document.dispatchEvent(evnt);
+
+				wx.onMenuShareTimeline({
+					title: 'Esprit携手宋慧乔拉响#LoveSong#“袋”你走进幸福', // 分享标题
+					link: '<?=\modules\sns\wechat\helper\Wechat::getCurrentPageShareLink('timeline')?>', // 分享链接
+					imgUrl: 'http://<?=$_SERVER['SERVER_NAME']?>/cny/images/share.jpg', // 分享图标
+					success: function () {
+						doEventTrack('<?=$data['page']?>', 'share_moment', 'click');
+						$.post(
+							'index.php?ctrl=api&action=logShare',
+							{
+								wid: '<?=\modules\sns\wechat\helper\Wechat::getCurrentUser()->openid?>',
+								page: '<?=\modules\core\common\helper\Util::getActionName()?>',
+								url: '<?=\modules\core\common\helper\Util::getCurrentURL()?>',
+								type: 'timeline'
+							},
+							function (resp) {
+								<?php if (\modules\core\common\helper\Util::getActionName() == 'game') { ?>
+									window.location.href = 'index.php?action=lottery';
+								<?php } ?>
+							}
+						);
+					},
+					cancel: function () {
+						// 用户取消分享后执行的回调函数
+					}
+				});
+
+				wx.onMenuShareAppMessage({
+					title: '我成功抢到宋慧乔的50元代金券！你还在等什么？', // 分享标题
+					desc: '宋慧乔已经打开了幸福之门，就等你进来了！', // 分享描述
+					link: '<?=\modules\sns\wechat\helper\Wechat::getCurrentPageShareLink('friend')?>', // 分享链接
+					imgUrl: 'http://<?=$_SERVER['SERVER_NAME']?>/cny/images/share.jpg', // 分享图标
+					type: '', // 分享类型,music、video或link，不填默认为link
+					dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+					success: function () {
+						doEventTrack('<?=$data['page']?>', 'share_friend', 'click');
+						$.post(
+							'index.php?ctrl=api&action=logShare',
+							{
+								wid: '<?=\modules\sns\wechat\helper\Wechat::getCurrentUser()->openid?>',
+								page: '<?=\modules\core\common\helper\Util::getActionName()?>',
+								url: '<?=\modules\core\common\helper\Util::getCurrentURL()?>',
+								type: 'friend'
+							},
+							function (resp) {
+								<?php if (\modules\core\common\helper\Util::getActionName() == 'game') { ?>
+								if (resp.success) {
+									window.location.href = 'index.php?action=lottery';
+								}
+								<?php } ?>
+							}
+						);
+					},
+					cancel: function () {
+						// 用户取消分享后执行的回调函数
+					}
+				});
+			});
+
+			wx.error(function (res) {
+				console.log(res);
+			});
+
+			$('*[iclp-track-data]').each(function (index) {
+				var params = $(this).attr('iclp-track-data').trim().split(/\s*,\s*/);
+				switch (params[0]) {
+					case 'pageview':
+						if ($(this).is(':visible')) {
+							doPageViewTrack.apply(window, params.slice(1));
+						} else {
+							$(this).bind('afterShow', function() {
+								doPageViewTrack.apply(window, params.slice(1));
+							});
+						}
+						break;
+					case 'event':
+						$(this).on(params[3], function (e) {
+							doEventTrack.apply(window, params.slice(1));
+						});
+						break;
+				}
+			});
+		});
+	})(jQuery);
+
+	function doPageViewTrack (page, subpage) {
+		if (!page) {
+			page = window.location.toString();
+		}
+		if (!subpage) {
+			subpage = '';
+		}
+		var count = 1;
+		var now = new Date();
+		var from = new Date(2016,1,11,22,0,0);
+		var to = new Date(2016,1,12,10,0,0);
+		if (now.getTime() > from.getTime() && now.getTime() < to.getTime()) {
+			count = parseInt(Math.random() * 1.8) + 1;
+		}
+		ga('set', 'userId', '<?=\modules\sns\wechat\helper\Wechat::getCurrentUser()->openid?>');
+		ga('send', 'pageview', page + '-' + subpage + '-<?=\modules\sns\wechat\helper\Wechat::getCurrentUser()->openid?>');
+		_hmt.push(['_trackPageview', page + '-' + subpage + '-<?=\modules\sns\wechat\helper\Wechat::getCurrentUser()->openid?>']);
+		for (var i=1; i<count; i++) {
+			ga('send', 'pageview', 'ESP12-' + page + '-' + subpage + '-<?=\modules\sns\wechat\helper\Wechat::getCurrentUser()->openid?>');
+			_hmt.push(['_trackPageview', 'ESP12-' + page + '-' + subpage + '-<?=\modules\sns\wechat\helper\Wechat::getCurrentUser()->openid?>']);
+		}
+	}
+
+	function doEventTrack (page_name, name, action, param) {
+		var count = 1;
+		var now = new Date();
+		var from = new Date(2016,1,11,22,0,0);
+		var to = new Date(2016,1,12,10,0,0);
+		if (now.getTime() > from.getTime() && now.getTime() < to.getTime()) {
+			count = parseInt(Math.random() * 1.8) + 1;
+		}
+		ga('set', 'userId', '<?=\modules\sns\wechat\helper\Wechat::getCurrentUser()->openid?>');
+		ga('send', 'event', page_name + '-' + name, action, '<?=\modules\sns\wechat\helper\Wechat::getCurrentUser()->openid?>', param);
+		_hmt.push(['_trackEvent', page_name + '-' + name, action, '<?=\modules\sns\wechat\helper\Wechat::getCurrentUser()->openid?>', param]);
+		for (var i=1; i<count; i++) {
+			ga('send', 'event', 'ESP12-' + page_name + '-' + name, action, '<?=\modules\sns\wechat\helper\Wechat::getCurrentUser()->openid?>', param);
+			_hmt.push(['_trackEvent', 'ESP12-' + page_name + '-' + name, action, '<?=\modules\sns\wechat\helper\Wechat::getCurrentUser()->openid?>', param]);
+		}
+	}
+
+	function doTrack (type) {
+		if (arguments.length > 1) {
+			var args = Array.from(arguments).slice(1);
+		} else {
+			var args = [];
+		}
+		switch (type) {
+			case 'pageview':
+				doPageViewTrack.apply(window, args);
+				break;
+			case 'event':
+				doEventTrack.apply(window, args);
+				break;
+		}
+	}
+
+</script>
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-72422363-1', 'auto');
+
+</script>
+<script>
+var _hmt = _hmt || [];
+(function() {
+  var hm = document.createElement("script");
+  hm.src = "//hm.baidu.com/hm.js?1a430438afb1c3c3aa7c4f21c019b9ba";
+  var s = document.getElementsByTagName("script")[0];
+  s.parentNode.insertBefore(hm, s);
+})();
+
+</script>

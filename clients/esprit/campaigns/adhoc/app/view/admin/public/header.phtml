@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <link rel="apple-touch-icon" href="images/logo.png">
+    <title><?php if (isset($data['__TITLE__'])) {echo $data['__TITLE__'];} else {echo 'Esprit Admin';} ?></title>
+    <link rel="stylesheet" type="text/css" href="css/main-pc.css">
+
+    <?php
+        include APP_DIR.DS.'view'.DS.'admin'.DS.'public'.DS.'scripts.phtml';
+    ?>
+
+</head>
+<body>
+    <div class="page-container">
