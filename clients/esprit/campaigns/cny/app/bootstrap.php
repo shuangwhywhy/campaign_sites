@@ -10,8 +10,9 @@ define('DS', DIRECTORY_SEPARATOR);
 define('APP_DIR', __DIR__);
 define('WEB_DIR', str_replace('app', 'web', APP_DIR));
 define('MODULE_DIR', preg_replace('/[\\/]campaigns[\\/].+$/', 'modules', APP_DIR));
-define('ROOT_DIR', preg_replace('/[\\/]campaigns[\\/].+$/', '', APP_DIR));
-define('CAMP_DIR', ROOT_DIR.DS.'campaigns');
+define('CLIENT_DIR', preg_replace('/[\\/]campaigns[\\/].+$/', '', APP_DIR));
+define('ROOT_DIR', preg_replace('/[\\/]clients[\\/].+$/', '', CLIENT_DIR));
+define('CAMP_DIR', CLIENT_DIR.DS.'campaigns');
 
 require_once CAMP_DIR.DS.'autoload.php';
 
@@ -63,16 +64,16 @@ class IclpClass {
 
 		switch ($ctrl) {
 			case 'page':
-				$controller = new \campaigns\common\app\controller\PageController();
+				$controller = new \clients\esprit\campaigns\cny\app\controller\PageController();
 				break;
 			case 'api':
-				$controller = new \campaigns\common\app\controller\ApiController();
+				$controller = new \clients\esprit\campaigns\cny\app\controller\ApiController();
 				break;
 			case 'admin':
-				$controller = new \campaigns\common\app\controller\AdminController();
+				$controller = new \clients\esprit\campaigns\cny\app\controller\AdminController();
 				break;
 			case 'report':
-				$controller = new \campaigns\common\app\controller\ReportController();
+				$controller = new \clients\esprit\campaigns\cny\app\controller\ReportController();
 				break;
 			default:
 				die('Controller \''.$ctrl.'\' not found');
