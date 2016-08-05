@@ -1,6 +1,6 @@
 <?php
 
-namespace campaigns\common\app\controller;
+namespace clients\esprit\campaigns\cny\app\controller;
 
 use \modules\core\common\helper\Util;
 use \modules\core\common\helper\DB;
