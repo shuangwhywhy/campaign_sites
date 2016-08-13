@@ -80,7 +80,7 @@ class WechatController extends \modules\core\common\controller\IclpController {
 					Logger::logOAuth(Wechat::getOpenID(), $openid, $subscribe_time);
 
 					Util::setIclpCookie('wx_auth_openid', $user->openid);
-					Util::setIclpCookie('esprit_open_id', $user->openid);
+					Util::setIclpCookie('cs_open_id', $user->openid);
 
 					if ($saveResult) {
 						$redirectUrl = $_GET['iclp_redirect'];

@@ -1,0 +1,7 @@
+<?php
+
+namespace modules\core\cache\model;
+
+class CacheObj {
+
+}

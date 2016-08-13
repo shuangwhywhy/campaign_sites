@@ -1,0 +1,37 @@
+		</div>
+
+		<?php
+	        include APP_DIR.DS.'view'.DS.'pc'.DS.'public'.DS.'overlay.phtml';
+		?>
+
+		<div class="footer">
+
+<?php
+if ($data['environment'] == 'test') {
+?>
+
+			<input type="button" value="发布" id="publish" style="width: 100px; height: 40px; font-size: 20px;" />
+			<script type="text/javascript">
+				$('#publish').on('click', function () {
+					if (confirm('全部检查过没问题了吗？')
+						&& confirm('请再次确认！')
+						&& confirm('再问你一次，所有功能都OK？')
+						&& confirm('最后问一句，你会承担所有因为你的疏忽导致的不良后果吗？')) {
+						$.post(
+							'index.php?ctrl=admin&action=publish',
+							{},
+							function () {
+								alert('你好，我是更新小帮手。\n我已经帮你更新完毕，先撤了，你慢慢玩。。。\n再见！');
+							}
+						);
+					}
+				});
+			</script>
+
+<?php
+}
+?>
+
+		</div>
+	</body>
+</html>
